@@ -28,9 +28,10 @@ const PLAN_STYLES: Record<string, string> = {
 }
 
 const TABLE_STYLES = {
-  std: { card: 'bg-emerald-50 border-emerald-300', num: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-700', bar: 'bg-emerald-500', label: '標準桌' },
-  big: { card: 'bg-blue-50 border-blue-300',       num: 'text-blue-700',    badge: 'bg-blue-100 text-blue-700',    bar: 'bg-blue-500',    label: '大桌' },
-  sm:  { card: 'bg-orange-50 border-orange-300',   num: 'text-orange-700',  badge: 'bg-orange-100 text-orange-700', bar: 'bg-orange-500', label: '小桌' },
+  std:   { card: 'bg-emerald-50 border-emerald-300', num: 'text-emerald-700', badge: 'bg-emerald-100 text-emerald-700', bar: 'bg-emerald-500', label: '標準桌' },
+  big:   { card: 'bg-blue-50 border-blue-300',       num: 'text-blue-700',    badge: 'bg-blue-100 text-blue-700',    bar: 'bg-blue-500',    label: '大桌' },
+  sm:    { card: 'bg-orange-50 border-orange-300',   num: 'text-orange-700',  badge: 'bg-orange-100 text-orange-700', bar: 'bg-orange-500', label: '小桌' },
+  other: { card: 'bg-purple-50 border-purple-300',   num: 'text-purple-700',  badge: 'bg-purple-100 text-purple-700', bar: 'bg-purple-500', label: '其他' },
 }
 
 // ─── GuestRow (pure display) ──────────────────────────────────────────────────
@@ -215,6 +216,7 @@ export function Step3Result() {
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-emerald-200 border border-emerald-400 inline-block" />標準桌</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-blue-200 border border-blue-400 inline-block" />大桌</span>
         <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-orange-200 border border-orange-400 inline-block" />小桌</span>
+        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-purple-200 border border-purple-400 inline-block" />其他</span>
         {hasSplit && (
           <span className="flex items-center gap-1.5"><span className="text-[10px] bg-blue-100 text-blue-600 rounded px-1">拆</span>同組跨桌</span>
         )}

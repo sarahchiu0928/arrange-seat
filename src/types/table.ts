@@ -1,6 +1,6 @@
 import type { GuestEntry } from './guest'
 
-export type TableType = 'std' | 'big' | 'sm'
+export type TableType = 'std' | 'big' | 'sm' | 'other'
 
 export interface Table {
   num: number

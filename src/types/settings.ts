@@ -1,3 +1,8 @@
+export interface OtherTable {
+  id: number
+  cap: number
+}
+
 export interface Settings {
   stdCount: number
   stdCap: number
@@ -5,6 +10,7 @@ export interface Settings {
   bigCap: number
   smCount: number
   smCap: number
+  otherTables: OtherTable[]
   tableStart: number
   allowSplit: boolean
   sortMode: 'desc' | 'asc' | 'keep'
@@ -19,6 +25,7 @@ export const defaultSettings: Settings = {
   bigCap: 14,
   smCount: 0,
   smCap: 5,
+  otherTables: [],
   tableStart: 1,
   allowSplit: false,
   sortMode: 'desc',

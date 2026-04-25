@@ -5,7 +5,7 @@ export function Header() {
         <div className="text-lg font-bold tracking-widest">
           小精靈螢火蟲館<span className="text-amber-400">排位</span>系統
         </div>
-        <div className="text-xs text-gray-400 tracking-wider">Firefly SEATING ARRANGEMENT</div>
+        <div className="text-xs text-gray-400 tracking-wider">FIREFLY SEATING ARRANGEMENT</div>
       </div>
     </header>
   )

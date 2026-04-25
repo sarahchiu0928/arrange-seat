@@ -203,8 +203,10 @@ export function Step1Adjust() {
   const [addOpen, setAddOpen] = useState(false)
   const [editIdx, setEditIdx] = useState<number | null>(null)
 
-  const totalAdults = guests.reduce((s, g) => s + g.adults, 0)
-  const totalKids   = guests.reduce((s, g) => s + g.kids, 0)
+  const totalAdults  = guests.reduce((s, g) => s + g.adults, 0)
+  const totalKids    = guests.reduce((s, g) => s + g.kids, 0)
+  const plan1Count   = guests.filter((g) => g.plan === '方案1').length
+  const plan2Count   = guests.filter((g) => g.plan === '方案2').length
 
   function handleAdd(g: Guest) {
     addGuest({ ...g, total: g.adults + g.kids })
@@ -234,7 +236,7 @@ export function Step1Adjust() {
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-500">
           {guests.length > 0
-            ? <>共 <strong className="text-gray-800">{guests.length}</strong> 組・大人 <strong className="text-gray-800">{totalAdults}</strong> 位・小孩 <strong className="text-gray-800">{totalKids}</strong> 位・合計 <strong className="text-gray-800">{totalAdults + totalKids}</strong> 人</>
+            ? <>共 <strong className="text-gray-800">{guests.length}</strong> 組・大人 <strong className="text-gray-800">{totalAdults}</strong> 位・小孩 <strong className="text-gray-800">{totalKids}</strong> 位・合計 <strong className="text-gray-800">{totalAdults + totalKids}</strong> 人・<span className="inline-flex items-center gap-1"><span className="bg-blue-50 text-blue-700 border border-blue-200 rounded-md px-2 py-0.5 text-xs font-medium">方案1</span><strong className="text-gray-800 text-sm">{plan1Count}</strong><span className="text-xs text-blue-700">組</span></span>・<span className="inline-flex items-center gap-1"><span className="bg-pink-50 text-pink-700 border border-pink-200 rounded-md px-2 py-0.5 text-xs font-medium">方案2</span><strong className="text-gray-800 text-sm">{plan2Count}</strong><span className="text-xs text-pink-700">組</span></span></>
             : '尚無賓客'}
         </p>
         <Button size="sm" onClick={() => setAddOpen(true)}>+ 新增賓客</Button>

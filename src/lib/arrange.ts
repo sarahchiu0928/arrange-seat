@@ -9,7 +9,7 @@ const SPLIT_LABELS = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛']
 
 export function arrange(guests: Guest[], settings: Settings): ArrangeResult {
   const {
-    stdCount, stdCap, bigCount, bigCap, smCount, smCap,
+    stdCount, stdCap, bigCount, bigCap, smCount, smCap, otherTables,
     tableStart, allowSplit, sortMode, kidsCount, reserveSeats,
   } = settings
 
@@ -20,6 +20,8 @@ export function arrange(guests: Guest[], settings: Settings): ArrangeResult {
     tables.push({ type: 'big', cap: bigCap, eff: bigCap - reserveSeats, guests: [], used: 0, num: 0 })
   for (let i = 0; i < smCount; i++)
     tables.push({ type: 'sm', cap: smCap, eff: smCap - reserveSeats, guests: [], used: 0, num: 0 })
+  for (const ot of (otherTables ?? []))
+    tables.push({ type: 'other', cap: ot.cap, eff: ot.cap - reserveSeats, guests: [], used: 0, num: 0 })
 
   tables.forEach((t, i) => { t.num = tableStart + i })
 

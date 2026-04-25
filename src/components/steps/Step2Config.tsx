@@ -5,15 +5,31 @@ import { Input } from '@/components/ui/input'
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select'
+import type { OtherTable } from '@/types'
 
 export function Step2Config() {
   const { guests, settings, updateSettings, setTables, goStep } = useStore()
 
-  const totalTables = settings.stdCount + settings.bigCount + settings.smCount
+  const otherTables: OtherTable[] = settings.otherTables ?? []
+  const otherSeats = otherTables.reduce((s, t) => s + t.cap, 0)
+  const nextOtherId = otherTables.length > 0 ? Math.max(...otherTables.map((t) => t.id)) + 1 : 1
+
+  function addOtherTable() {
+    updateSettings({ otherTables: [...otherTables, { id: nextOtherId, cap: 10 }] })
+  }
+  function removeOtherTable(id: number) {
+    updateSettings({ otherTables: otherTables.filter((t) => t.id !== id) })
+  }
+  function updateOtherTableCap(id: number, cap: number) {
+    updateSettings({ otherTables: otherTables.map((t) => t.id === id ? { ...t, cap } : t) })
+  }
+
+  const totalTables = settings.stdCount + settings.bigCount + settings.smCount + otherTables.length
   const totalSeats =
     settings.stdCount * settings.stdCap +
     settings.bigCount * settings.bigCap +
-    settings.smCount * settings.smCap
+    settings.smCount * settings.smCap +
+    otherSeats
   const totalGuests = guests.reduce((s, g) => s + g.total, 0)
   const seatShortfall = totalGuests > totalSeats ? totalGuests - totalSeats : 0
 
@@ -67,6 +83,47 @@ export function Step2Config() {
           </div>
         ))}
 
+        {/* 其他桌 */}
+        <div className="rounded-lg border border-purple-100 bg-purple-50 p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-semibold text-purple-700">🟣 其他桌</span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs border-purple-300 text-purple-700 hover:bg-purple-100"
+              onClick={addOtherTable}
+            >
+              + 新增桌子
+            </Button>
+          </div>
+          {otherTables.length === 0 && (
+            <p className="text-xs text-purple-400">點擊「新增桌子」可加入不同人數的桌子</p>
+          )}
+          {otherTables.map((ot, idx) => (
+            <div key={ot.id} className="flex items-center gap-2 bg-white rounded-md border border-purple-100 px-3 py-2">
+              <span className="text-sm text-purple-600 min-w-[48px]">桌 {idx + 1}</span>
+              <span className="text-sm text-gray-400">容量</span>
+              <Input
+                type="number" min={1} max={50}
+                value={ot.cap}
+                onChange={(e) => updateOtherTableCap(ot.id, parseInt(e.target.value) || 1)}
+                className="w-16 text-center h-7 text-sm"
+              />
+              <span className="text-sm text-gray-400">人</span>
+              <button
+                className="ml-auto text-gray-400 hover:text-red-500 text-sm"
+                onClick={() => removeOtherTable(ot.id)}
+                title="移除此桌"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+          {otherTables.length > 0 && (
+            <p className="text-xs text-purple-500 pt-1">→ 共 {otherTables.length} 桌，合計 {otherSeats} 位</p>
+          )}
+        </div>
+
         <div className="flex items-center gap-4 pt-2 border-t border-gray-100 flex-wrap">
           <span className="text-sm text-gray-600">
             總桌數：<strong>{totalTables}</strong> 桌　總座位：<strong>{totalSeats}</strong> 位
@@ -94,39 +151,6 @@ export function Step2Config() {
         <p className="text-sm font-medium text-gray-600">排位選項</p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1">
-            <label className="text-xs text-gray-500">同組賓客是否可拆桌</label>
-            <Select
-              value={settings.allowSplit ? 'yes' : 'no'}
-              onValueChange={(v) => updateSettings({ allowSplit: v === 'yes' })}
-            >
-              <SelectTrigger className="h-9 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="no">❌ 不拆桌（整組坐同一桌）</SelectItem>
-                <SelectItem value="yes">✅ 允許拆桌（人數超過時自動拆）</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-1">
-            <label className="text-xs text-gray-500">排序方式</label>
-            <Select
-              value={settings.sortMode}
-              onValueChange={(v) => updateSettings({ sortMode: v as 'desc' | 'asc' | 'keep' })}
-            >
-              <SelectTrigger className="h-9 text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="desc">人數多的優先排</SelectItem>
-                <SelectItem value="asc">人數少的優先排</SelectItem>
-                <SelectItem value="keep">依輸入順序</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="space-y-1">
             <label className="text-xs text-gray-500">小孩計入桌位人數</label>
             <Select
