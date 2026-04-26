@@ -4,6 +4,9 @@ export interface TableSlice {
   tables: Table[]
   setTables: (tables: Table[]) => void
   moveGuest: (fromTableNum: number, guestIdx: number, toTableNum: number) => void
+  diningTables: Table[]
+  setDiningTables: (tables: Table[]) => void
+  moveDiningGuest: (fromTableNum: number, guestIdx: number, toTableNum: number) => void
 }
 
 export const createTableSlice = (set: (fn: (s: TableSlice) => Partial<TableSlice>) => void): TableSlice => ({
@@ -20,5 +23,19 @@ export const createTableSlice = (set: (fn: (s: TableSlice) => Partial<TableSlice
       to.guests.push(guest)
       to.used += guest.effective
       return { tables }
+    }),
+  diningTables: [],
+  setDiningTables: (diningTables) => set(() => ({ diningTables })),
+  moveDiningGuest: (fromTableNum, guestIdx, toTableNum) =>
+    set((s) => {
+      const diningTables = s.diningTables.map((t) => ({ ...t, guests: [...t.guests] }))
+      const from = diningTables.find((t) => t.num === fromTableNum)
+      const to = diningTables.find((t) => t.num === toTableNum)
+      if (!from || !to || from === to) return {}
+      const [guest] = from.guests.splice(guestIdx, 1)
+      from.used -= guest.effective
+      to.guests.push(guest)
+      to.used += guest.effective
+      return { diningTables }
     }),
 })
