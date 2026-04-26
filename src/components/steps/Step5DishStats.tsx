@@ -1,46 +1,96 @@
 import { useRef } from 'react'
 import { toPng } from 'html-to-image'
 import { useStore } from '@/store'
-import { buildDishStats } from '@/lib/food'
+import { buildDishStats, type DishStat } from '@/lib/food'
 import { Button } from '@/components/ui/button'
 
-const KITCHEN2_DISHES = new Set([
-  '蛤仔湯（白鍋）', '蛤仔湯（大鍋）', '九尾雞湯',
-  '黃金脆雞（半）',
-  '無刺鯛魚片（小）', '無刺鯛魚片',
-  '清燙鮮蝦',
-  '炸南瓜酥（小）', '炸南瓜酥',
-  '炸冰點',
-])
+// ─── Display structure ────────────────────────────────────────────────────────
+
+type SingleItem = { type: 'single'; dish: string }
+type GroupItem  = { type: 'group';  base: string; variants: { label: string; dish: string }[] }
+type DisplayItem = SingleItem | GroupItem
+
+const KITCHEN1: DisplayItem[] = [
+  { type: 'group',  base: '炒青菜',    variants: [{ label: '小', dish: '炒青菜（小）' },    { label: '標準', dish: '炒青菜' }] },
+  { type: 'single', dish: '櫻花蝦高麗菜' },
+  { type: 'group',  base: '麻油松板肉', variants: [{ label: '小', dish: '麻油松板肉（小）' }, { label: '標準', dish: '麻油松板肉' }] },
+  { type: 'single', dish: '炒山豬肉' },
+  { type: 'single', dish: '黑椒霜降豬肉' },
+  { type: 'group',  base: '客家小炒',  variants: [{ label: '小', dish: '客家小炒（小）' },  { label: '標準', dish: '客家小炒' }] },
+  { type: 'single', dish: '炸豆腐' },
+  { type: 'single', dish: '五味花枝' },
+  { type: 'single', dish: '小卷米粉湯' },
+]
+
+const KITCHEN2: DisplayItem[] = [
+  { type: 'group',  base: '蛤仔湯',    variants: [{ label: '白鍋', dish: '蛤仔湯（白鍋）' }, { label: '大鍋', dish: '蛤仔湯（大鍋）' }] },
+  { type: 'single', dish: '九尾雞湯' },
+  { type: 'group',  base: '黃金閹雞',  variants: [{ label: '半', dish: '黃金閹雞（半）' },   { label: '整', dish: '黃金閹雞' }] },
+  { type: 'group',  base: '無刺鰻魚片', variants: [{ label: '小', dish: '無刺鰻魚片（小）' }, { label: '標準', dish: '無刺鰻魚片' }] },
+  { type: 'single', dish: '清燙鮮蝦' },
+  { type: 'group',  base: '炸南瓜酥',  variants: [{ label: '小', dish: '炸南瓜酥（小）' },   { label: '標準', dish: '炸南瓜酥' }] },
+  { type: 'single', dish: '炸冰點' },
+]
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function buildCountMap(stats: DishStat[]) {
+  return new Map(stats.map((s) => [s.dish, s.total]))
+}
 
 function KitchenSection({
-  title, color, dishes,
+  title, items, counts, headerCls, badgeCls, countCls,
 }: {
   title: string
-  color: { header: string; badge: string; count: string }
-  dishes: { dish: string; total: number }[]
+  items: DisplayItem[]
+  counts: Map<string, number>
+  headerCls: string
+  badgeCls: string
+  countCls: string
 }) {
+  const rows = items.filter((item) => {
+    if (item.type === 'single') return (counts.get(item.dish) ?? 0) > 0
+    return item.variants.some((v) => (counts.get(v.dish) ?? 0) > 0)
+  })
+  if (rows.length === 0) return null
+
   return (
     <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
-      <div className={`px-4 py-3 border-b border-gray-100 flex items-center gap-2 ${color.header}`}>
-        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${color.badge}`}>{title}</span>
+      <div className={`px-4 py-3 border-b border-gray-100 flex items-center gap-2 ${headerCls}`}>
+        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${badgeCls}`}>{title}</span>
       </div>
       <div className="divide-y divide-gray-50">
-        {dishes.map(({ dish, total }) => (
-          <div key={dish} className="flex items-center justify-between px-4 py-2.5">
-            <span className="text-sm text-gray-700">{dish}</span>
-            <span className={`text-sm font-semibold tabular-nums min-w-[3rem] text-right ${color.count}`}>
-              {total} 份
-            </span>
-          </div>
-        ))}
-        {dishes.length === 0 && (
-          <p className="text-sm text-gray-400 text-center py-4">無</p>
-        )}
+        {rows.map((item) => {
+          if (item.type === 'single') {
+            const total = counts.get(item.dish) ?? 0
+            return (
+              <div key={item.dish} className="flex items-center justify-between px-4 py-2.5">
+                <span className="text-sm text-gray-700">{item.dish}</span>
+                <span className={`text-sm font-semibold tabular-nums ${countCls}`}>{total} 份</span>
+              </div>
+            )
+          }
+          const present = item.variants.filter((v) => (counts.get(v.dish) ?? 0) > 0)
+          return (
+            <div key={item.base} className="flex items-center justify-between px-4 py-2.5">
+              <span className="text-sm text-gray-700">{item.base}</span>
+              <div className="flex items-center gap-3">
+                {present.map((v) => (
+                  <span key={v.dish} className="text-sm text-gray-500">
+                    {v.label}{' '}
+                    <span className={`font-semibold tabular-nums ${countCls}`}>{counts.get(v.dish)} 份</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
 }
+
+// ─── Step5DishStats ───────────────────────────────────────────────────────────
 
 export function Step5DishStats() {
   const { guests, goStep } = useStore()
@@ -62,10 +112,8 @@ export function Step5DishStats() {
   }
 
   const { stats, details } = buildDishStats(guests)
-  const totalIceCream = stats.find((s) => s.dish === '炸冰點')?.total ?? 0
-
-  const kitchen2 = stats.filter((s) => KITCHEN2_DISHES.has(s.dish))
-  const kitchen1 = stats.filter((s) => !KITCHEN2_DISHES.has(s.dish))
+  const counts = buildCountMap(stats)
+  const totalIceCream = counts.get('炸冰點') ?? 0
 
   async function exportImage() {
     if (!resultRef.current) return
@@ -75,6 +123,9 @@ export function Step5DishStats() {
     a.href = dataUrl
     a.click()
   }
+
+  // dishes that belong to kitchen 2 (for per-guest detail coloring)
+  const k2Dishes = new Set(KITCHEN2.flatMap((i) => i.type === 'single' ? [i.dish] : i.variants.map((v) => v.dish)))
 
   return (
     <div className="space-y-5">
@@ -94,7 +145,6 @@ export function Step5DishStats() {
       <div className="flex gap-3 flex-wrap">
         {[
           { val: details.length, lbl: '方案二組數' },
-          { val: stats.length, lbl: '菜色種類' },
           { val: totalIceCream, lbl: '炸冰點總份數' },
         ].map(({ val, lbl }) => (
           <div key={lbl} className="bg-white border border-gray-100 rounded-lg px-4 py-2 text-center min-w-[100px] shadow-sm">
@@ -112,18 +162,21 @@ export function Step5DishStats() {
 
       {stats.length > 0 && (
         <div ref={resultRef} className="space-y-4 bg-gray-50 p-1 rounded-xl">
-          {/* Kitchen 1 */}
           <KitchenSection
             title="1 廚房"
-            color={{ header: 'bg-amber-50', badge: 'bg-amber-100 text-amber-800', count: 'text-amber-700' }}
-            dishes={kitchen1}
+            items={KITCHEN1}
+            counts={counts}
+            headerCls="bg-amber-50"
+            badgeCls="bg-amber-100 text-amber-800"
+            countCls="text-amber-700"
           />
-
-          {/* Kitchen 2 */}
           <KitchenSection
             title="2 廚房"
-            color={{ header: 'bg-blue-50', badge: 'bg-blue-100 text-blue-800', count: 'text-blue-700' }}
-            dishes={kitchen2}
+            items={KITCHEN2}
+            counts={counts}
+            headerCls="bg-blue-50"
+            badgeCls="bg-blue-100 text-blue-800"
+            countCls="text-blue-700"
           />
 
           {/* Per-guest breakdown */}
@@ -144,7 +197,7 @@ export function Step5DishStats() {
                         <span
                           key={dish}
                           className={`text-xs rounded px-2 py-0.5 border ${
-                            KITCHEN2_DISHES.has(dish)
+                            k2Dishes.has(dish)
                               ? 'bg-blue-50 border-blue-200 text-blue-700'
                               : 'bg-amber-50 border-amber-200 text-amber-700'
                           }`}

@@ -73,6 +73,7 @@ function DroppableTableCard({ table }: { table: TableType }) {
   const s = TABLE_STYLES[table.type]
   const pct = table.eff > 0 ? Math.round((table.used / table.eff) * 100) : 0
   const isOverCap = table.used > table.eff
+  const iceCount = table.guests.reduce((s, g) => s + g.adults, 0)
 
   return (
     <div
@@ -117,7 +118,9 @@ function DroppableTableCard({ table }: { table: TableType }) {
             style={{ width: `${Math.min(pct, 100)}%` }}
           />
         </div>
-        <span className={cn('text-xs', isOverCap ? 'text-red-600' : 'text-gray-400')}>{pct}%</span>
+        <span className="text-xs bg-pink-50 text-pink-600 border border-pink-200 rounded px-1.5 py-0.5 font-medium">
+          冰 {iceCount}
+        </span>
       </div>
     </div>
   )

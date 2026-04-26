@@ -40,20 +40,25 @@ function GuestRow({ g }: { g: GuestEntry }) {
     : `${g.adults}成人${g.kids > 0 ? `+${g.kids}小孩` : ''}`
 
   return (
-    <div className="flex items-center justify-between text-sm px-2 py-1 rounded-md bg-white/70 select-none">
-      <span className="font-medium text-gray-800 flex items-center gap-1">
-        {g.plan && planStyle && (
-          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${planStyle}`}>{g.plan}</Badge>
-        )}
-        {g.name}
-        {g.split && g.splitLabel && (
-          <span className="text-[10px] text-gray-400">{g.splitLabel}</span>
-        )}
-      </span>
-      <span className="text-xs text-gray-400 flex items-center gap-1">
-        {g.split && <span className="text-[10px] bg-blue-100 text-blue-600 rounded px-1">拆</span>}
-        {countLabel}
-      </span>
+    <div className="px-2 py-1 rounded-md bg-white/70 select-none">
+      <div className="flex items-center justify-between text-sm">
+        <span className="font-medium text-gray-800 flex items-center gap-1">
+          {g.plan && planStyle && (
+            <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${planStyle}`}>{g.plan}</Badge>
+          )}
+          {g.name}
+          {g.split && g.splitLabel && (
+            <span className="text-[10px] text-gray-400">{g.splitLabel}</span>
+          )}
+        </span>
+        <span className="text-xs text-gray-400 flex items-center gap-1">
+          {g.split && <span className="text-[10px] bg-blue-100 text-blue-600 rounded px-1">拆</span>}
+          {countLabel}
+        </span>
+      </div>
+      {g.note && (
+        <p className="text-[11px] text-gray-400 mt-0.5 leading-snug">{g.note}</p>
+      )}
     </div>
   )
 }

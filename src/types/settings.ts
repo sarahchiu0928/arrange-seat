@@ -21,7 +21,7 @@ export interface Settings {
 export const defaultSettings: Settings = {
   stdCount: 6,
   stdCap: 10,
-  bigCount: 0,
+  bigCount: 2,
   bigCap: 14,
   smCount: 0,
   smCap: 5,
@@ -46,9 +46,9 @@ export interface DiningSettings {
 }
 
 export const defaultDiningSettings: DiningSettings = {
-  stdCount: 0,
+  stdCount: 6,
   stdCap: 10,
-  bigCount: 0,
+  bigCount: 2,
   bigCap: 14,
   smCount: 0,
   smCap: 5,
