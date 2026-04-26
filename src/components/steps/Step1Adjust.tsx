@@ -315,7 +315,7 @@ export function Step1Adjust() {
 
       <div className="flex gap-2 pt-2">
         <Button variant="outline" onClick={() => goStep(0)}>← 返回</Button>
-        <Button disabled={guests.length === 0} onClick={() => goStep(2)}>下一步：桌位設定 →</Button>
+        <Button disabled={guests.length === 0} onClick={() => goStep(2)}>下一步：排位結果 →</Button>
       </div>
 
       {/* 新增 Dialog — key="add" 固定，避免 state 殘留 */}

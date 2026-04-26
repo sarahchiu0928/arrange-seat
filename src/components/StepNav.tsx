@@ -5,18 +5,17 @@ import { useStore } from '@/store'
 const STEPS = [
   { id: 0, label: '✦ 整理名單' },
   { id: 1, label: '① 名單調整' },
-  { id: 2, label: '② 桌位設定' },
-  { id: 3, label: '③ 排位結果－上課座位' },
-  { id: 4, label: '④ 排位結果－用餐座位' },
+  { id: 2, label: '② 排位結果－上課座位' },
+  { id: 3, label: '③ 排位結果－用餐座位' },
+  { id: 4, label: '④ 菜色統計' },
 ]
 
 export function StepNav() {
-  const { currentStep, goStep, guests, diningTables } = useStore()
+  const { currentStep, goStep, guests } = useStore()
 
   function handleClick(id: number) {
     if (id === 1 && currentStep === 0) { goStep(1); return }
-    if (id === 2 && guests.length === 0) return
-    if (id === 4 && diningTables.length === 0) return
+    if (id >= 2 && guests.length === 0) return
     if (id >= 0 && id <= 4) goStep(id as 0 | 1 | 2 | 3 | 4)
   }
 
@@ -25,9 +24,7 @@ export function StepNav() {
       {STEPS.map((step) => {
         const isActive = currentStep === step.id
         const isDone = step.id < currentStep
-        const isDisabled =
-          (step.id === 4 && diningTables.length === 0) ||
-          (step.id === 2 && guests.length === 0)
+        const isDisabled = step.id >= 2 && guests.length === 0
         return (
           <motion.button
             key={step.id}

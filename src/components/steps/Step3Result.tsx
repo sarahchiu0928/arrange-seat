@@ -9,13 +9,10 @@ import { CSS } from '@dnd-kit/utilities'
 import { toPng } from 'html-to-image'
 import { cn } from '@/lib/utils'
 import { useStore } from '@/store'
-import { buildFoodSummary } from '@/lib/food'
 import { arrange } from '@/lib/arrange'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from '@/components/ui/table'
+import { ClassroomConfigPanel } from '@/components/ClassroomConfigPanel'
 import type { GuestEntry, Table as TableType } from '@/types'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -140,9 +137,10 @@ function DroppableTableCard({ table }: { table: TableType }) {
 // ─── Step3Result ──────────────────────────────────────────────────────────────
 
 export function Step3Result() {
-  const { tables, guests, settings, setTables, moveGuest, goStep } = useStore()
+  const { tables, guests, settings, moveGuest } = useStore()
   const resultRef = useRef<HTMLDivElement>(null)
   const [activeGuest, setActiveGuest] = useState<GuestEntry | null>(null)
+  const [configOpen, setConfigOpen] = useState(() => tables.length === 0)
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
 
@@ -166,8 +164,6 @@ export function Step3Result() {
   const hasSplit = tables.some((t) => t.guests.some((g) => g.split))
   const totalGuests = tables.reduce((s, t) => s + t.used, 0)
   const totalSeats = tables.reduce((s, t) => s + t.eff, 0)
-  const food = buildFoodSummary(tables)
-
   const stats = [
     { val: tables.length, lbl: '桌數' },
     { val: totalGuests, lbl: '賓客人數' },
@@ -190,132 +186,96 @@ export function Step3Result() {
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-amber-400 text-gray-900 flex items-center justify-center text-sm font-bold">3</div>
-          <h2 className="text-lg font-bold">排位結果</h2>
+          <div className="w-8 h-8 rounded-full bg-amber-400 text-gray-900 flex items-center justify-center text-sm font-bold">2</div>
+          <h2 className="text-lg font-bold">排位結果－上課座位</h2>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={() => goStep(2)}>← 修改設定</Button>
-          <Button variant="outline" size="sm" onClick={() => { const { tables: t } = arrange(guests, settings); setTables(t) }}>↺ 重新排位</Button>
           <Button size="sm" onClick={exportImage}>⬇ 匯出圖片</Button>
           <Button variant="outline" size="sm" onClick={() => window.print()}>🖨 列印</Button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="flex gap-3 flex-wrap">
-        {stats.map(({ val, lbl }) => (
-          <div key={lbl} className="bg-white border border-gray-100 rounded-lg px-4 py-2 text-center min-w-[90px] shadow-sm">
-            <div className="text-2xl font-semibold">{val}</div>
-            <div className="text-xs text-gray-400">{lbl}</div>
+      {/* Collapsible config */}
+      <div className="border border-gray-200 rounded-xl overflow-hidden">
+        <button
+          className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700"
+          onClick={() => setConfigOpen((o) => !o)}
+        >
+          <span>桌位設定</span>
+          <span className="text-gray-400 text-xs">{configOpen ? '▲ 收起' : '▼ 展開'}</span>
+        </button>
+        {configOpen && (
+          <div className="border-t border-gray-100 p-4 bg-gray-50">
+            <ClassroomConfigPanel
+              arrangeLabel="↺ 開始排位"
+              onArranged={() => setConfigOpen(false)}
+            />
           </div>
-        ))}
-      </div>
-
-      {/* Legend */}
-      <div className="flex gap-4 flex-wrap text-xs text-gray-500">
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-emerald-200 border border-emerald-400 inline-block" />標準桌</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-blue-200 border border-blue-400 inline-block" />大桌</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-orange-200 border border-orange-400 inline-block" />小桌</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-purple-200 border border-purple-400 inline-block" />其他</span>
-        {hasSplit && (
-          <span className="flex items-center gap-1.5"><span className="text-[10px] bg-blue-100 text-blue-600 rounded px-1">拆</span>同組跨桌</span>
         )}
-        <span className="flex items-center gap-1.5 text-gray-400 ml-auto">拖曳賓客可換桌</span>
       </div>
 
-      {/* Hall grid with DnD */}
-      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div ref={resultRef} className="overflow-x-auto">
-          <div className="grid grid-cols-3 gap-3 min-w-[640px] mb-1">
-            {['第一列', '第二列', '第三列'].map((lbl) => (
-              <div key={lbl} className="text-center text-xs text-gray-400">{lbl}</div>
-            ))}
-          </div>
-          <div
-            className="grid grid-cols-3 gap-3 min-w-[640px]"
-            style={{
-              gridAutoFlow: 'column',
-              gridTemplateRows: `repeat(${Math.ceil(tables.length / 3)}, auto)`,
-            }}
-          >
-            {tables.map((t) => <DroppableTableCard key={t.num} table={t} />)}
-          </div>
-        </div>
-
-        <DragOverlay dropAnimation={null}>
-          {activeGuest && (
-            <div className="bg-white rounded-lg shadow-xl border border-amber-300 px-3 py-2 opacity-95 min-w-[200px]">
-              <GuestRow g={activeGuest} />
+      {tables.length > 0 && (<>
+        {/* Stats */}
+        <div className="flex gap-3 flex-wrap">
+          {stats.map(({ val, lbl }) => (
+            <div key={lbl} className="bg-white border border-gray-100 rounded-lg px-4 py-2 text-center min-w-[90px] shadow-sm">
+              <div className="text-2xl font-semibold">{val}</div>
+              <div className="text-xs text-gray-400">{lbl}</div>
             </div>
-          )}
-        </DragOverlay>
-      </DndContext>
-
-      {/* Unassigned */}
-      {unassigned.length > 0 && (
-        <div className="text-sm text-red-700 bg-red-50 border-l-4 border-red-400 px-4 py-3 rounded">
-          ⚠ 以下 {unassigned.length} 組賓客無法排入現有桌位：
-          {unassigned.map((g, i) => (
-            <span key={i}> <strong>{g.name}</strong>（{g.effective}人）</span>
           ))}
         </div>
-      )}
 
-      {/* Food summary */}
-      {food.rows.length > 0 && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full bg-red-700 text-white flex items-center justify-center text-xs">🍗</div>
-            <h3 className="font-semibold text-base">菜色統計（方案2 / 方案4）</h3>
-          </div>
-          <div className="rounded-lg border border-gray-100 overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-900">
-                  <TableHead className="text-amber-300">桌次</TableHead>
-                  <TableHead className="text-amber-300">賓客</TableHead>
-                  <TableHead className="text-amber-300">方案</TableHead>
-                  <TableHead className="text-amber-300 w-14 text-center">人數</TableHead>
-                  <TableHead className="text-amber-300">湯品</TableHead>
-                  <TableHead className="text-amber-300">雞肉</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {food.rows.map((r, i) => (
-                  <TableRow key={i}>
-                    <TableCell className="font-medium">第 {r.tableNum} 桌</TableCell>
-                    <TableCell className="font-medium">{r.guestName}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className={`text-xs ${PLAN_STYLES[r.plan] ?? ''}`}>{r.plan}</Badge>
-                    </TableCell>
-                    <TableCell className="text-center">{r.pax}</TableCell>
-                    <TableCell>
-                      <span className="text-xs bg-orange-50 text-orange-700 border border-orange-200 rounded px-2 py-0.5">🍲 {r.soup}</span>
-                    </TableCell>
-                    <TableCell>
-                      {r.chicken
-                        ? <span className="text-xs bg-orange-50 text-orange-700 border border-orange-200 rounded px-2 py-0.5">🍗 {r.chicken}</span>
-                        : '-'}
-                    </TableCell>
-                  </TableRow>
-                ))}
-                <TableRow className="bg-gray-50 font-semibold">
-                  <TableCell colSpan={3}>合計</TableCell>
-                  <TableCell />
-                  <TableCell className="space-x-1">
-                    {food.totalSm > 0 && <span className="text-xs bg-orange-50 text-orange-700 border border-orange-200 rounded px-2 py-0.5">蛤蜊湯（小）× {food.totalSm}</span>}
-                    {food.totalBig > 0 && <span className="text-xs bg-orange-50 text-orange-700 border border-orange-200 rounded px-2 py-0.5">蛤蜊湯（大）× {food.totalBig}</span>}
-                    {food.totalJiuwei > 0 && <span className="text-xs bg-orange-50 text-orange-700 border border-orange-200 rounded px-2 py-0.5">九尾雞湯 × {food.totalJiuwei}</span>}
-                  </TableCell>
-                  <TableCell>
-                    {food.totalHalf > 0 && <span className="text-xs bg-orange-50 text-orange-700 border border-orange-200 rounded px-2 py-0.5">🍗 雞肉（半）× {food.totalHalf}</span>}
-                  </TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
-          </div>
+        {/* Legend */}
+        <div className="flex gap-4 flex-wrap text-xs text-gray-500">
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-emerald-200 border border-emerald-400 inline-block" />標準桌</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-blue-200 border border-blue-400 inline-block" />大桌</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-orange-200 border border-orange-400 inline-block" />小桌</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-purple-200 border border-purple-400 inline-block" />其他</span>
+          {hasSplit && (
+            <span className="flex items-center gap-1.5"><span className="text-[10px] bg-blue-100 text-blue-600 rounded px-1">拆</span>同組跨桌</span>
+          )}
+          <span className="flex items-center gap-1.5 text-gray-400 ml-auto">拖曳賓客可換桌</span>
         </div>
-      )}
+
+        {/* Hall grid with DnD */}
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <div ref={resultRef} className="overflow-x-auto">
+            <div className="grid grid-cols-3 gap-3 min-w-[640px] mb-1">
+              {['第一列', '第二列', '第三列'].map((lbl) => (
+                <div key={lbl} className="text-center text-xs text-gray-400">{lbl}</div>
+              ))}
+            </div>
+            <div
+              className="grid grid-cols-3 gap-3 min-w-[640px]"
+              style={{
+                gridAutoFlow: 'column',
+                gridTemplateRows: `repeat(${Math.ceil(tables.length / 3)}, auto)`,
+              }}
+            >
+              {tables.map((t) => <DroppableTableCard key={t.num} table={t} />)}
+            </div>
+          </div>
+
+          <DragOverlay dropAnimation={null}>
+            {activeGuest && (
+              <div className="bg-white rounded-lg shadow-xl border border-amber-300 px-3 py-2 opacity-95 min-w-[200px]">
+                <GuestRow g={activeGuest} />
+              </div>
+            )}
+          </DragOverlay>
+        </DndContext>
+
+        {/* Unassigned */}
+        {unassigned.length > 0 && (
+          <div className="text-sm text-red-700 bg-red-50 border-l-4 border-red-400 px-4 py-3 rounded">
+            ⚠ 以下 {unassigned.length} 組賓客無法排入現有桌位：
+            {unassigned.map((g, i) => (
+              <span key={i}> <strong>{g.name}</strong>（{g.effective}人）</span>
+            ))}
+          </div>
+        )}
+      </>)}
+
     </div>
   )
 }

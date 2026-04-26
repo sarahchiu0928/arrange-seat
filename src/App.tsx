@@ -4,11 +4,11 @@ import { Header } from '@/components/Header'
 import { StepNav } from '@/components/StepNav'
 import { Step0Clean } from '@/components/steps/Step0Clean'
 import { Step1Adjust } from '@/components/steps/Step1Adjust'
-import { Step2Config } from '@/components/steps/Step2Config'
 import { Step3Result } from '@/components/steps/Step3Result'
 import { Step4DiningResult } from '@/components/steps/Step4DiningResult'
+import { Step5DishStats } from '@/components/steps/Step5DishStats'
 
-const STEPS = [Step0Clean, Step1Adjust, Step2Config, Step3Result, Step4DiningResult]
+const STEPS = [Step0Clean, Step1Adjust, Step3Result, Step4DiningResult, Step5DishStats]
 
 const variants = {
   enter: (dir: number) => ({ x: dir > 0 ? 40 : -40, opacity: 0 }),

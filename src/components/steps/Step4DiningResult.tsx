@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { DiningConfigPanel } from '@/components/DiningConfigPanel'
 import {
   DndContext, DragOverlay,
   useDraggable, useDroppable,
@@ -125,9 +126,10 @@ function DroppableTableCard({ table }: { table: TableType }) {
 // ─── Step4DiningResult ────────────────────────────────────────────────────────
 
 export function Step4DiningResult() {
-  const { diningTables, guests, diningSettings, setDiningTables, moveDiningGuest, goStep } = useStore()
+  const { diningTables, guests, diningSettings, moveDiningGuest } = useStore()
   const resultRef = useRef<HTMLDivElement>(null)
   const [activeGuest, setActiveGuest] = useState<GuestEntry | null>(null)
+  const [configOpen, setConfigOpen] = useState(() => diningTables.length === 0)
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }))
 
@@ -168,93 +170,97 @@ export function Step4DiningResult() {
     a.click()
   }
 
-  if (diningTables.length === 0) {
-    return (
-      <div className="space-y-5">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-pink-400 text-white flex items-center justify-center text-sm font-bold">4</div>
-          <h2 className="text-lg font-bold">排位結果－用餐座位</h2>
-        </div>
-        <p className="text-sm text-gray-400 bg-gray-50 rounded-lg p-4">
-          尚未排用餐座位，請先至「桌位設定 → 用餐座位」進行排位。
-        </p>
-        <Button variant="outline" onClick={() => goStep(2)}>← 返回桌位設定</Button>
-      </div>
-    )
-  }
-
   return (
     <div className="space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-pink-400 text-white flex items-center justify-center text-sm font-bold">4</div>
+          <div className="w-8 h-8 rounded-full bg-pink-400 text-white flex items-center justify-center text-sm font-bold">3</div>
           <h2 className="text-lg font-bold">排位結果－用餐座位</h2>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={() => goStep(2)}>← 修改設定</Button>
-          <Button variant="outline" size="sm" onClick={() => { const { tables } = arrangeDining(guests, diningSettings); setDiningTables(tables) }}>↺ 重新排位</Button>
           <Button size="sm" onClick={exportImage}>⬇ 匯出圖片</Button>
           <Button variant="outline" size="sm" onClick={() => window.print()}>🖨 列印</Button>
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="flex gap-3 flex-wrap">
-        {stats.map(({ val, lbl }) => (
-          <div key={lbl} className="bg-white border border-gray-100 rounded-lg px-4 py-2 text-center min-w-[90px] shadow-sm">
-            <div className="text-2xl font-semibold">{val}</div>
-            <div className="text-xs text-gray-400">{lbl}</div>
+      {/* Collapsible config */}
+      <div className="border border-gray-200 rounded-xl overflow-hidden">
+        <button
+          className="w-full flex items-center justify-between px-4 py-3 bg-white hover:bg-gray-50 transition-colors text-sm font-medium text-gray-700"
+          onClick={() => setConfigOpen((o) => !o)}
+        >
+          <span>桌位設定</span>
+          <span className="text-gray-400 text-xs">{configOpen ? '▲ 收起' : '▼ 展開'}</span>
+        </button>
+        {configOpen && (
+          <div className="border-t border-gray-100 p-4 bg-gray-50">
+            <DiningConfigPanel
+              arrangeLabel="↺ 開始排位"
+              onArranged={() => setConfigOpen(false)}
+            />
           </div>
-        ))}
+        )}
       </div>
 
-      {/* Legend */}
-      <div className="flex gap-4 flex-wrap text-xs text-gray-500">
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-emerald-200 border border-emerald-400 inline-block" />標準桌</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-blue-200 border border-blue-400 inline-block" />大桌</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-orange-200 border border-orange-400 inline-block" />小桌</span>
-        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-purple-200 border border-purple-400 inline-block" />其他</span>
-        <span className="flex items-center gap-1.5 text-gray-400 ml-auto">拖曳賓客可換桌</span>
-      </div>
-
-      {/* Hall grid with DnD */}
-      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-        <div ref={resultRef} className="overflow-x-auto">
-          <div className="grid grid-cols-3 gap-3 min-w-[640px] mb-1">
-            {['第一列', '第二列', '第三列'].map((lbl) => (
-              <div key={lbl} className="text-center text-xs text-gray-400">{lbl}</div>
-            ))}
-          </div>
-          <div
-            className="grid grid-cols-3 gap-3 min-w-[640px]"
-            style={{
-              gridAutoFlow: 'column',
-              gridTemplateRows: `repeat(${Math.ceil(diningTables.length / 3)}, auto)`,
-            }}
-          >
-            {diningTables.map((t) => <DroppableTableCard key={t.num} table={t} />)}
-          </div>
-        </div>
-
-        <DragOverlay dropAnimation={null}>
-          {activeGuest && (
-            <div className="bg-white rounded-lg shadow-xl border border-pink-300 px-3 py-2 opacity-95 min-w-[200px]">
-              <GuestRow g={activeGuest} />
+      {diningTables.length > 0 && (<>
+        {/* Stats */}
+        <div className="flex gap-3 flex-wrap">
+          {stats.map(({ val, lbl }) => (
+            <div key={lbl} className="bg-white border border-gray-100 rounded-lg px-4 py-2 text-center min-w-[90px] shadow-sm">
+              <div className="text-2xl font-semibold">{val}</div>
+              <div className="text-xs text-gray-400">{lbl}</div>
             </div>
-          )}
-        </DragOverlay>
-      </DndContext>
-
-      {/* Unassigned */}
-      {unassigned.length > 0 && (
-        <div className="text-sm text-red-700 bg-red-50 border-l-4 border-red-400 px-4 py-3 rounded">
-          ⚠ 以下 {unassigned.length} 組賓客無法排入現有桌位：
-          {unassigned.map((g, i) => (
-            <span key={i}> <strong>{g.name}</strong>（{g.effective}人）</span>
           ))}
         </div>
-      )}
+
+        {/* Legend */}
+        <div className="flex gap-4 flex-wrap text-xs text-gray-500">
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-emerald-200 border border-emerald-400 inline-block" />標準桌</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-blue-200 border border-blue-400 inline-block" />大桌</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-orange-200 border border-orange-400 inline-block" />小桌</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-purple-200 border border-purple-400 inline-block" />其他</span>
+          <span className="flex items-center gap-1.5 text-gray-400 ml-auto">拖曳賓客可換桌</span>
+        </div>
+
+        {/* Hall grid with DnD */}
+        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+          <div ref={resultRef} className="overflow-x-auto">
+            <div className="grid grid-cols-3 gap-3 min-w-[640px] mb-1">
+              {['第一列', '第二列', '第三列'].map((lbl) => (
+                <div key={lbl} className="text-center text-xs text-gray-400">{lbl}</div>
+              ))}
+            </div>
+            <div
+              className="grid grid-cols-3 gap-3 min-w-[640px]"
+              style={{
+                gridAutoFlow: 'column',
+                gridTemplateRows: `repeat(${Math.ceil(diningTables.length / 3)}, auto)`,
+              }}
+            >
+              {diningTables.map((t) => <DroppableTableCard key={t.num} table={t} />)}
+            </div>
+          </div>
+
+          <DragOverlay dropAnimation={null}>
+            {activeGuest && (
+              <div className="bg-white rounded-lg shadow-xl border border-pink-300 px-3 py-2 opacity-95 min-w-[200px]">
+                <GuestRow g={activeGuest} />
+              </div>
+            )}
+          </DragOverlay>
+        </DndContext>
+
+        {/* Unassigned */}
+        {unassigned.length > 0 && (
+          <div className="text-sm text-red-700 bg-red-50 border-l-4 border-red-400 px-4 py-3 rounded">
+            ⚠ 以下 {unassigned.length} 組賓客無法排入現有桌位：
+            {unassigned.map((g, i) => (
+              <span key={i}> <strong>{g.name}</strong>（{g.effective}人）</span>
+            ))}
+          </div>
+        )}
+      </>)}
     </div>
   )
 }
