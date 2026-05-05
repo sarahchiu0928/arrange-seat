@@ -11,6 +11,7 @@ import { toPng } from 'html-to-image'
 import { cn } from '@/lib/utils'
 import { useStore } from '@/store'
 import { arrangeDining } from '@/lib/arrangeDining'
+import { getJuiceCount } from '@/lib/food'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import type { GuestEntry, Table as TableType } from '@/types'
@@ -22,6 +23,7 @@ const PLAN_STYLES: Record<string, string> = {
   方案2: 'bg-pink-50 text-pink-700 border-pink-200',
   方案3: 'bg-green-50 text-green-700 border-green-200',
   方案4: 'bg-orange-50 text-orange-700 border-orange-200',
+  方案5: 'bg-teal-50 text-teal-700 border-teal-200',
 }
 
 const TABLE_STYLES = {
@@ -37,14 +39,19 @@ function GuestRow({ g }: { g: GuestEntry }) {
   const planStyle = PLAN_STYLES[g.plan]
   const countLabel = `${g.adults}成人${g.kids > 0 ? `+${g.kids}小孩` : ''}`
   return (
-    <div className="flex items-center justify-between text-sm px-2 py-1 rounded-md bg-white/70 select-none">
-      <span className="font-medium text-gray-800 flex items-center gap-1">
-        {g.plan && planStyle && (
-          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${planStyle}`}>{g.plan}</Badge>
-        )}
-        {g.name}
-      </span>
-      <span className="text-xs text-gray-400">{countLabel}</span>
+    <div className="px-2 py-1 rounded-md bg-white/70 select-none">
+      <div className="flex items-center justify-between text-sm">
+        <span className="font-medium text-gray-800 flex items-center gap-1">
+          {g.plan && planStyle && (
+            <Badge variant="outline" className={`text-[10px] px-1.5 py-0 ${planStyle}`}>{g.plan}</Badge>
+          )}
+          {g.name}
+        </span>
+        <span className="text-xs text-black">{countLabel}</span>
+      </div>
+      {g.note && (
+        <p className="text-[11px] text-black mt-0.5 leading-snug">{g.note}</p>
+      )}
     </div>
   )
 }
@@ -74,6 +81,7 @@ function DroppableTableCard({ table }: { table: TableType }) {
   const pct = table.eff > 0 ? Math.round((table.used / table.eff) * 100) : 0
   const isOverCap = table.used > table.eff
   const iceCount = table.guests.reduce((s, g) => s + g.adults, 0)
+  const juiceCount = table.guests.reduce((s, g) => s + getJuiceCount(g.adults), 0)
 
   return (
     <div
@@ -109,7 +117,7 @@ function DroppableTableCard({ table }: { table: TableType }) {
       </div>
 
       <div className="mt-2 pt-2 border-t border-black/5 flex items-center gap-2">
-        <span className={cn('text-xs', isOverCap ? 'text-red-600 font-semibold' : 'text-gray-400')}>
+        <span className={cn('text-xs', isOverCap ? 'text-red-600 font-semibold' : 'text-black')}>
           {table.used}/{table.eff}位
         </span>
         <div className="flex-1 h-1 bg-black/10 rounded-full overflow-hidden">
@@ -121,6 +129,11 @@ function DroppableTableCard({ table }: { table: TableType }) {
         <span className="text-xs bg-pink-50 text-pink-600 border border-pink-200 rounded px-1.5 py-0.5 font-medium">
           冰 {iceCount}
         </span>
+        {juiceCount > 0 && (
+          <span className="text-xs bg-yellow-50 text-yellow-700 border border-yellow-200 rounded px-1.5 py-0.5 font-medium">
+            果汁 {juiceCount}瓶
+          </span>
+        )}
       </div>
     </div>
   )
@@ -158,7 +171,7 @@ export function Step4DiningResult() {
 
   const stats = [
     { val: diningTables.length, lbl: '桌數' },
-    { val: totalGuests, lbl: '方案2人數' },
+    { val: totalGuests, lbl: '用餐人數' },
     { val: totalSeats, lbl: '總座位數' },
     { val: totalSeats - totalGuests, lbl: '空位數' },
     { val: unassigned.length, lbl: '未排組數' },

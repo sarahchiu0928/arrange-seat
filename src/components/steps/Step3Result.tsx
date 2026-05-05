@@ -22,6 +22,7 @@ const PLAN_STYLES: Record<string, string> = {
   方案2: 'bg-pink-50 text-pink-700 border-pink-200',
   方案3: 'bg-green-50 text-green-700 border-green-200',
   方案4: 'bg-orange-50 text-orange-700 border-orange-200',
+  方案5: 'bg-teal-50 text-teal-700 border-teal-200',
 }
 
 const TABLE_STYLES = {
@@ -51,13 +52,13 @@ function GuestRow({ g }: { g: GuestEntry }) {
             <span className="text-[10px] text-gray-400">{g.splitLabel}</span>
           )}
         </span>
-        <span className="text-xs text-gray-400 flex items-center gap-1">
+        <span className="text-xs text-black flex items-center gap-1">
           {g.split && <span className="text-[10px] bg-blue-100 text-blue-600 rounded px-1">拆</span>}
           {countLabel}
         </span>
       </div>
       {g.note && (
-        <p className="text-[11px] text-gray-400 mt-0.5 leading-snug">{g.note}</p>
+        <p className="text-[11px] text-black mt-0.5 leading-snug">{g.note}</p>
       )}
     </div>
   )
@@ -124,7 +125,7 @@ function DroppableTableCard({ table }: { table: TableType }) {
       </div>
 
       <div className="mt-2 pt-2 border-t border-black/5 flex items-center gap-2">
-        <span className={cn('text-xs', isOverCap ? 'text-red-600 font-semibold' : 'text-gray-400')}>
+        <span className={cn('text-xs', isOverCap ? 'text-red-600 font-semibold' : 'text-black')}>
           {table.used}/{table.eff}位
         </span>
         <div className="flex-1 h-1 bg-black/10 rounded-full overflow-hidden">
@@ -133,7 +134,7 @@ function DroppableTableCard({ table }: { table: TableType }) {
             style={{ width: `${Math.min(pct, 100)}%` }}
           />
         </div>
-        <span className={cn('text-xs', isOverCap ? 'text-red-600' : 'text-gray-400')}>{pct}%</span>
+        <span className={cn('text-xs', isOverCap ? 'text-red-600' : 'text-black')}>{pct}%</span>
       </div>
     </div>
   )

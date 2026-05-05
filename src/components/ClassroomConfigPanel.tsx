@@ -31,7 +31,7 @@ export function ClassroomConfigPanel({ onArranged, arrangeLabel = '開始排位 
     settings.bigCount * settings.bigCap +
     settings.smCount * settings.smCap +
     otherSeats
-  const totalGuests = guests.reduce((s, g) => s + g.total, 0)
+  const totalGuests = guests.filter((g) => g.plan !== '方案5').reduce((s, g) => s + g.total, 0)
   const seatShortfall = totalGuests > totalSeats ? totalGuests - totalSeats : 0
 
   function handleArrange() {

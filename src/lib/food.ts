@@ -31,6 +31,7 @@ const PLAN2_MENU: Record<number, DishItem[]> = {
     { dish: '麻油松板肉（小）', qty: 1 },
     { dish: '無刺鰻魚片（小）', qty: 1 },
     { dish: '客家小炒（小）', qty: 1 },
+    { dish: '果汁', qty: 1 },
     { dish: '炸冰點', qty: 3 },
   ],
   4: [
@@ -41,6 +42,7 @@ const PLAN2_MENU: Record<number, DishItem[]> = {
     { dish: '清燙鮮蝦', qty: 1 },
     { dish: '麻油松板肉', qty: 1 },
     { dish: '炸南瓜酥', qty: 1 },
+    { dish: '果汁', qty: 1 },
     { dish: '炸冰點', qty: 4 },
   ],
   5: [
@@ -50,6 +52,7 @@ const PLAN2_MENU: Record<number, DishItem[]> = {
     { dish: '麻油松板肉', qty: 1 },
     { dish: '無刺鰻魚片（小）', qty: 1 },
     { dish: '客家小炒', qty: 1 },
+    { dish: '果汁', qty: 1 },
     { dish: '炸冰點', qty: 5 },
   ],
   6: [
@@ -60,6 +63,7 @@ const PLAN2_MENU: Record<number, DishItem[]> = {
     { dish: '客家小炒', qty: 1 },
     { dish: '無刺鰻魚片', qty: 1 },
     { dish: '麻油松板肉', qty: 1 },
+    { dish: '果汁', qty: 1 },
     { dish: '炸冰點', qty: 6 },
   ],
   7: [
@@ -70,17 +74,19 @@ const PLAN2_MENU: Record<number, DishItem[]> = {
     { dish: '客家小炒', qty: 1 },
     { dish: '麻油松板肉', qty: 1 },
     { dish: '炸南瓜酥', qty: 1 },
+    { dish: '果汁', qty: 2 },
     { dish: '炸冰點', qty: 7 },
   ],
   8: [
     { dish: '九尾雞湯', qty: 1 },
     { dish: '櫻花蝦高麗菜', qty: 1 },
-    { dish: '黃金閹雞', qty: 1 },
+    { dish: '黃金閹雞（半）', qty: 1 },
     { dish: '炸南瓜酥', qty: 1 },
     { dish: '清燙鮮蝦', qty: 1 },
     { dish: '客家小炒', qty: 1 },
     { dish: '麻油松板肉', qty: 1 },
     { dish: '無刺鰻魚片', qty: 1 },
+    { dish: '果汁', qty: 2 },
     { dish: '炸冰點', qty: 8 },
   ],
   9: [
@@ -94,6 +100,7 @@ const PLAN2_MENU: Record<number, DishItem[]> = {
     { dish: '麻油松板肉', qty: 1 },
     { dish: '炸南瓜酥', qty: 1 },
     { dish: '炸豆腐', qty: 1 },
+    { dish: '果汁', qty: 2 },
     { dish: '炸冰點', qty: 9 },
   ],
   10: [
@@ -107,6 +114,7 @@ const PLAN2_MENU: Record<number, DishItem[]> = {
     { dish: '炸豆腐', qty: 1 },
     { dish: '五味花枝', qty: 1 },
     { dish: '小卷米粉湯', qty: 1 },
+    { dish: '果汁', qty: 2 },
     { dish: '炸冰點', qty: 10 },
   ],
   11: [
@@ -120,6 +128,7 @@ const PLAN2_MENU: Record<number, DishItem[]> = {
     { dish: '麻油松板肉', qty: 1 },
     { dish: '五味花枝', qty: 1 },
     { dish: '炸南瓜酥', qty: 1 },
+    { dish: '果汁', qty: 3 },
     { dish: '炸冰點', qty: 11 },
   ],
   12: [
@@ -135,6 +144,7 @@ const PLAN2_MENU: Record<number, DishItem[]> = {
     { dish: '炸南瓜酥', qty: 1 },
     { dish: '五味花枝', qty: 1 },
     { dish: '小卷米粉湯', qty: 1 },
+    { dish: '果汁', qty: 3 },
     { dish: '炸冰點', qty: 12 },
   ],
   13: [
@@ -150,7 +160,8 @@ const PLAN2_MENU: Record<number, DishItem[]> = {
     { dish: '炸南瓜酥', qty: 1 },
     { dish: '五味花枝', qty: 1 },
     { dish: '小卷米粉湯', qty: 1 },
-    { dish: '炸冰點', qty: 12 },
+    { dish: '果汁', qty: 3 },
+    { dish: '炸冰點', qty: 13 },
   ],
   14: [
     { dish: '九尾雞湯', qty: 1 },
@@ -165,7 +176,8 @@ const PLAN2_MENU: Record<number, DishItem[]> = {
     { dish: '炸南瓜酥', qty: 1 },
     { dish: '五味花枝', qty: 1 },
     { dish: '小卷米粉湯', qty: 1 },
-    { dish: '炸冰點', qty: 12 },
+    { dish: '果汁', qty: 3 },
+    { dish: '炸冰點', qty: 14 },
   ],
 }
 
@@ -178,6 +190,12 @@ const DISH_ORDER = [
   '客家小炒（小）', '客家小炒', '炸南瓜酥（小）', '炸南瓜酥', '炸豆腐',
   '炸冰點',
 ]
+
+export function getJuiceCount(pax: number): number {
+  const menu = PLAN2_MENU[pax]
+  if (!menu) return 0
+  return menu.find((d) => d.dish === '果汁')?.qty ?? 0
+}
 
 export interface DishStat { dish: string; total: number }
 
@@ -192,7 +210,7 @@ export function buildDishStats(guests: Guest[]): { stats: DishStat[]; details: G
   const details: GuestDishDetail[] = []
 
   for (const g of guests) {
-    if (g.plan !== '方案2') continue
+    if (g.plan !== '方案2' && g.plan !== '方案5') continue
     // kids excluded from plan 2 menu — use adults count for lookup
     const paxList = g.splits && g.splits.length > 0 ? g.splits : [g.adults]
     for (const pax of paxList) {
@@ -234,7 +252,7 @@ export function buildFoodSummary(tables: Table[]): FoodSummary {
 
   for (const t of tables) {
     for (const g of t.guests) {
-      if (g.plan !== '方案2' && g.plan !== '方案4') continue
+      if (g.plan !== '方案2' && g.plan !== '方案4' && g.plan !== '方案5') continue
       const pax = g.split ? g.effective : g.total
       const food = getFoodForCount(pax)
       rows.push({ tableNum: t.num, guestName: g.name, plan: g.plan, pax, ...food })

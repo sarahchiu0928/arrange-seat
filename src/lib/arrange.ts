@@ -25,9 +25,12 @@ export function arrange(guests: Guest[], settings: Settings): ArrangeResult {
 
   tables.forEach((t, i) => { t.num = tableStart + i })
 
+  // 方案5 guests only attend dining seating, not classroom seating
+  const eligibleGuests = guests.filter((g) => g.plan !== '方案5')
+
   // Expand manually-split guests into sub-entries
   let list: GuestEntry[] = []
-  for (const g of guests) {
+  for (const g of eligibleGuests) {
     const eff = kidsCount ? g.total : g.adults
     const splitsSum = g.splits?.reduce((a, b) => a + b, 0) ?? 0
 

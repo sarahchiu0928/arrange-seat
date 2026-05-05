@@ -22,8 +22,11 @@ export function DiningConfigPanel({ onArranged, arrangeLabel = '開始排用餐�
   const otherSeats = otherTables.reduce((s, t) => s + t.cap, 0)
   const nextOtherId = otherTables.length > 0 ? Math.max(...otherTables.map((t) => t.id)) + 1 : 1
 
-  const plan2Guests = guests.filter((g) => g.plan === '方案2')
+  const diningGuests = guests.filter((g) => g.plan === '方案2' || g.plan === '方案5')
+  const plan2Guests = diningGuests.filter((g) => g.plan === '方案2')
+  const plan5Guests = diningGuests.filter((g) => g.plan === '方案5')
   const plan2Total = plan2Guests.reduce((s, g) => s + g.total, 0)
+  const plan5Total = plan5Guests.reduce((s, g) => s + g.total, 0)
 
   const totalTables = diningSettings.stdCount + diningSettings.bigCount + diningSettings.smCount + otherTables.length
   const totalSeats =
@@ -31,10 +34,10 @@ export function DiningConfigPanel({ onArranged, arrangeLabel = '開始排用餐�
     diningSettings.bigCount * diningSettings.bigCap +
     diningSettings.smCount * diningSettings.smCap +
     otherSeats
-  const diningShortfall = plan2Guests.length > totalTables ? plan2Guests.length - totalTables : 0
+  const diningShortfall = diningGuests.length > totalTables ? diningGuests.length - totalTables : 0
 
   function handleArrange() {
-    if (totalTables === 0 || plan2Guests.length === 0) return
+    if (totalTables === 0 || diningGuests.length === 0) return
     const { tables } = arrangeDining(guests, diningSettings)
     setDiningTables(tables)
     onArranged?.()
@@ -42,7 +45,7 @@ export function DiningConfigPanel({ onArranged, arrangeLabel = '開始排用餐�
 
   return (
     <div className="space-y-3">
-      {/* 方案2 summary */}
+      {/* 方案2 + 方案5 summary */}
       <div className="flex gap-3 flex-wrap">
         <div className="bg-pink-50 border border-pink-200 rounded-lg px-4 py-2 text-center min-w-[90px]">
           <div className="text-2xl font-semibold text-pink-700">{plan2Guests.length}</div>
@@ -52,6 +55,16 @@ export function DiningConfigPanel({ onArranged, arrangeLabel = '開始排用餐�
           <div className="text-2xl font-semibold text-pink-700">{plan2Total}</div>
           <div className="text-xs text-pink-500">方案2人數</div>
         </div>
+        {plan5Guests.length > 0 && (<>
+          <div className="bg-teal-50 border border-teal-200 rounded-lg px-4 py-2 text-center min-w-[90px]">
+            <div className="text-2xl font-semibold text-teal-700">{plan5Guests.length}</div>
+            <div className="text-xs text-teal-500">方案5組數</div>
+          </div>
+          <div className="bg-teal-50 border border-teal-200 rounded-lg px-4 py-2 text-center min-w-[90px]">
+            <div className="text-2xl font-semibold text-teal-700">{plan5Total}</div>
+            <div className="text-xs text-teal-500">方案5人數</div>
+          </div>
+        </>)}
       </div>
 
       <div className="bg-white border border-gray-100 rounded-xl p-5 shadow-sm space-y-3">
@@ -123,7 +136,7 @@ export function DiningConfigPanel({ onArranged, arrangeLabel = '開始排用餐�
             總桌數：<strong>{totalTables}</strong> 桌　總座位：<strong>{totalSeats}</strong> 位
           </span>
           {diningShortfall > 0 && (
-            <span className="text-xs text-red-600">⚠ 桌數不足！方案2共 {plan2Guests.length} 組，差 {diningShortfall} 桌</span>
+            <span className="text-xs text-red-600">⚠ 桌數不足！用餐共 {diningGuests.length} 組，差 {diningShortfall} 桌</span>
           )}
         </div>
 
@@ -147,7 +160,7 @@ export function DiningConfigPanel({ onArranged, arrangeLabel = '開始排用餐�
       </div>
 
       <Button
-        disabled={totalTables === 0 || plan2Guests.length === 0}
+        disabled={totalTables === 0 || diningGuests.length === 0}
         onClick={handleArrange}
         className="bg-pink-500 hover:bg-pink-600 text-white disabled:opacity-40"
       >

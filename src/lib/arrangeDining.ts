@@ -21,14 +21,19 @@ export function arrangeDining(guests: Guest[], settings: DiningSettings): Dining
 
   tables.forEach((t, i) => { t.num = tableStart + i })
 
-  const plan2 = guests.filter((g) => g.plan === '方案2')
+  const plan2 = guests.filter((g) => g.plan === '方案2' || g.plan === '方案5')
   const list: GuestEntry[] = plan2.map((g) => ({ ...g, effective: g.total, split: false }))
+
+  // Sort largest group first so big guests claim appropriately-sized tables before small guests take them
+  const sorted = [...list].sort((a, b) => b.effective - a.effective)
 
   const unassigned: GuestEntry[] = []
 
-  for (const g of list) {
-    // 一人一桌：只找空桌（guests.length === 0）且容量足夠的桌子
-    const t = tables.find((t) => t.guests.length === 0 && t.eff >= g.effective)
+  for (const g of sorted) {
+    // Among empty tables that fit, pick the smallest one (best-fit) to avoid wasting large tables on small groups
+    const eligible = tables.filter((t) => t.guests.length === 0 && t.eff >= g.effective)
+    eligible.sort((a, b) => a.eff - b.eff)
+    const t = eligible[0]
     if (t) {
       t.guests.push({ ...g })
       t.used += g.effective
